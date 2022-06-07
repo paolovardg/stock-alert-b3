@@ -271,6 +271,49 @@ For this, a second Web Scraping process is done inside our Views.py, where we co
 <img width="1387" alt="Screen Shot 2022-06-06 at 10 04 06 AM" src="https://user-images.githubusercontent.com/106985050/172273705-bb4c5a75-6824-4557-90d6-8d923bb5fcea.png">
 
 
+    def stock_detailed(request, id=id):
+
+    obj = get_object_or_404(Stock,id=id)
+    url_title = obj.title.lower()
+    url_title = url_title.replace(" ", "-")
+
+    url = f"https://br.investing.com{obj.url}-historical-data"
+    headers= {
+            "User-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.61 Safari/537.36",
+            "Accept-language": "en",
+        }
+    r = requests.get(url, headers=headers)
+
+    soup = BeautifulSoup(r.text, "lxml")
+    table = soup.find('table', id="curr_table")
+    rows = table.find('tbody').find_all("tr")
+
+    history_data = []
+
+    for row in rows:
+        data = row.find(class_="noWrap")
+        ultimo = data.find_next("td")
+        abertura = ultimo.find_next("td")
+        max = abertura.find_next("td")
+        min = max.find_next("td")
+
+        history_data.append(
+            {
+                'data': data.text,
+                'ultimo': ultimo.text,
+                'abertura': abertura.text,
+                'max': max.text,
+                'min': min.text
+            }
+        )
+    context = {
+        'object': obj,
+        'history': history_data
+    }
+    return render(request, "authenticate/stock_detailed.html", context)
+
+
+
 The project aims to make the user’s journey effective and simple, suggesting Buy whenever the price of a monitored asset crosses its lower limit, and suggesting Sell whenever the price of a monitored asset crosses its upper limit.
 
 For that, AlarmStock Model is Added. 
