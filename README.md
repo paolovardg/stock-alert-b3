@@ -373,12 +373,13 @@ To Automate the Email notification process, Crontab is the tool we choose, lets 
             for alarm in queryset:
                 if stock.id == alarm.stock.id:
                     if alarm.buying_at <= stock.price:
+                    user_email = alarm.user.email
                         alarm.status = "Buying Opportunity"
                         EmailMessage(
                             'Alarm Stock Alert',
                             'Buying Opportunity',
                             settings.EMAIL_HOST_USER,
-                            ['paolo9517@gmail.com'],
+                            [user_email],
                         )
                     if alarm.selling_at >= stock.price:
                         alarm.status = "Selling Opportunity"
@@ -386,7 +387,7 @@ To Automate the Email notification process, Crontab is the tool we choose, lets 
                             'Alarm Stock Alert',
                             'Selling Opportunity:',
                             settings.EMAIL_HOST_USER,
-                            ['paolo9517@gmail.com'],
+                            [user_email],
                         )
 
 
