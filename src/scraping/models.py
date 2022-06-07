@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 class Stock(models.Model):
-    url = models.CharField(max_length=100,unique=True,null=True)
+    url = models.CharField(max_length=100,null=True)
     title = models.CharField(max_length=250, unique=True)
     price = models.DecimalField(decimal_places=2, max_digits=303)
     max = models.DecimalField(decimal_places=2, max_digits=30)
