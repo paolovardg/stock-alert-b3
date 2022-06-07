@@ -28,17 +28,19 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
+# CRON TIME LIMIT SPECIFIC
+# CURRENTLY 1 MINUTE, AVAILABLE FOR MODIFICATION
 CRONJOBS = [
     ('*/1 * * * *', 'scraping.cron.my_scheduled_job')
 ]
+
 # Application definition
 # EMAIL CONFIGURATIONS
-
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.yandex.ru'
-# EMAIL_PORT = 465
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
 # EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'pvde.gasperi@skyeng.es'
+# EMAIL_HOST_USER = 'vargasdegasperi@orastudio.tech'
 # EMAIL_HOST_PASSWORD = 'xxxxxxxxxx'
 # ACCOUNT_EMAIL_VERIFICATION = 'none'
 

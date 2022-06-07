@@ -1,5 +1,3 @@
-from email.policy import default
-from statistics import variance
 from django.contrib.auth.models import User
 from django.db import models
 

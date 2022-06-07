@@ -1,4 +1,3 @@
-from pickletools import read_uint1
 from .models import Stock, AlarmStock
 from django.core.mail import EmailMessage
 import requests
@@ -13,6 +12,7 @@ def my_scheduled_job(request):
         for alarm in queryset:
             if stock.id == alarm.stock.id:
                 if alarm.buying_at <= stock.price:
+                    alarm.status = "Buying Opportunity"
                     EmailMessage(
                         'Alarm Stock Alert',
                         'Buying Opportunity',
@@ -20,6 +20,7 @@ def my_scheduled_job(request):
                         ['paolo9517@gmail.com'],
                     )
                 if alarm.selling_at >= stock.price:
+                    alarm.status = "Selling Opportunity"
                     EmailMessage(
                         'Alarm Stock Alert',
                         'Selling Opportunity:',
