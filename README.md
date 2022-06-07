@@ -8,8 +8,7 @@ investing.com was our best option to consultation of stored prices, Save to DB, 
 
 
     class Stock(models.Model):
-<img width="1394" alt="Screen Shot 2022-06-06 at 8 49 39 PM" src="https://user-images.githubusercontent.com/106985050/172272657-a1c1f643-9a9e-41f5-bcf4-946bfa00790a.png">
-
+    
     url = models.CharField(max_length=100,unique=True,null=True)
     title = models.CharField(max_length=250, unique=True)
     price = models.DecimalField(decimal_places=2, max_digits=303)
