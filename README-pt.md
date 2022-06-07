@@ -6,7 +6,7 @@ registrar periodicamente o preço atual dos ativos da B3 e também notificar, po
 
 O primeiro passo para desenvolver este projeto é definir de onde obter nossas informações necessárias, para que o web scraping adequado possa ser feito de forma eficaz.
 
-A investing.com foi a nossa melhor opção para consultar os preços armazenados, Salvar no BD, configurar os ativos a serem monitorados e parametrizar os túneis de preços para cada ativo e verificar a frequência de cada ativo.
+A investing.com foi a minha melhor opção para consultar os preços armazenados, Salvar no BD, configurar os ativos a serem monitorados e parametrizar os túneis de preços para cada ativo e verificar a frequência de cada ativo.
 
 
     
@@ -28,7 +28,7 @@ A investing.com foi a nossa melhor opção para consultar os preços armazenados
     class Admin:
         pass
  
- Isso é o que vamos agendar automaticamente no nível de infraestrutura para automatizar o Web Scraping usando BeautifulSoup4, evitando as duplicatas e atualizando automaticamente os dados se houver alguma alteração chamando:
+ Isso é o que vamos agendar automaticamente no nível de infraestrutura para automatizar o Web Scraping usando BeautifulSoup4, evitando as duplicates e atualizando automaticamente os dados se houver alguma alteração chamando:
  
  python manage.py scrape
  
@@ -259,19 +259,64 @@ Adicione o aplicativo de membros, adicione o arquivo URLS.py ao aplicativo de me
     
     
     
-Em nossas visualizações iniciais, os resultados de raspagem são exibidos com todos os detalhes de: último preço, máximo, mínimo, variação, var por centavo e a data de criação (será atualizada toda vez que esta tsk for automatizada).
+Em nossas visualizações iniciais, os resultados de Web Scraping são exibidos com todos os detalhes de: último preço, máximo, mínimo, variação, variation percentage e a data de criação (será atualizada toda vez que esta task for realizada, depois configuramos a frequency de atualizacao no Heroku).
 
-Exibindo um pequeno 'Painel como' para usuários logados, com as informações do perfil e os alertas atuais do usuário.
+Exibindo um pequeno 'Dashboard' para usuários logados, com as informações do perfil e os alertas atuais do usuário.
 
 
 <img width="1420" alt="Screen Shot 2022-06-06 at 10 00 17 AM" src="https://user-images.githubusercontent.com/106985050/172273516-08c09ade-28da-4b39-8f1c-f5337bfa50d6.png">
 
 Há também um link para entrar em uma página detalhada para visualizar a atividade diária para o estoque selecionado. Com todos os seus principais campos sendo exibidos para que o usuário tenha uma melhor visualização.
 
-Para isso, um segundo processo de Web Scraping é feito dentro do nosso Views.py, onde coletamos os dados da atividade diária do estoque. A raspagem é atualizada toda vez que o usuário volta a esta página.
+Para isso, um segundo processo de Web Scraping é feito dentro do nosso Views.py, onde coletamos os dados da atividade diária do Stock. A Web Scraping é atualizada toda vez que o usuário volta a esta página.
 
 
 <img width="1387" alt="Screen Shot 2022-06-06 at 10 04 06 AM" src="https://user-images.githubusercontent.com/106985050/172273705-bb4c5a75-6824-4557-90d6-8d923bb5fcea.png">
+
+    def stock_detailed(request, id=id):
+
+    obj = get_object_or_404(Stock,id=id)
+    url_title = obj.title.lower()
+    url_title = url_title.replace(" ", "-")
+
+    url = f"https://br.investing.com{obj.url}-historical-data"
+    headers= {
+            "User-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.61 Safari/537.36",
+            "Accept-language": "en",
+        }
+    r = requests.get(url, headers=headers)
+
+    soup = BeautifulSoup(r.text, "lxml")
+    table = soup.find('table', id="curr_table")
+    rows = table.find('tbody').find_all("tr")
+
+    history_data = []
+
+    for row in rows:
+        data = row.find(class_="noWrap")
+        ultimo = data.find_next("td")
+        abertura = ultimo.find_next("td")
+        max = abertura.find_next("td")
+        min = max.find_next("td")
+
+        history_data.append(
+            {
+                'data': data.text,
+                'ultimo': ultimo.text,
+                'abertura': abertura.text,
+                'max': max.text,
+                'min': min.text
+            }
+        )
+    context = {
+        'object': obj,
+        'history': history_data
+    }
+    return render(request, "authenticate/stock_detailed.html", context)
+
+
+
+
 
 O projeto visa tornar a jornada do usuário efetiva e simples, sugerindo Compre sempre que o preço de um ativo monitorado ultrapassar seu limite inferior e sugerindo Vender sempre que o preço de um ativo monitorado ultrapassar seu limite superior.
 
@@ -289,7 +334,7 @@ Para isso, o modelo AlarmStock.
         def __str__(self):
             return self.stock.title
             
-  Um processo CRUD (Create, Read, Update, Delete) muito simples para criar alarmes para o usuário.
+  Um processo CRUD (Create, Read, Update, Delete) muito simples para criar alarms para o usuário.
   
      # READ
     def my_alarms(request):
@@ -356,7 +401,7 @@ Uma vista detalhada dos Alertas do Usuário. Obtemos acesso às ações de ediç
 
 <img width="1301" alt="Screen Shot 2022-06-06 at 10 00 28 AM" src="https://user-images.githubusercontent.com/106985050/172273974-7364d29d-0700-4897-8ad9-48759533c361.png">
 
-Para automatizar o processo de notificação por e-mail, o Crontab é a ferramenta que escolhemos, permite executar código Django/Python de forma recorrente, provando o encanamento básico para rastrear e executar tarefas. As duas maneiras mais comuns pelas quais a maioria das pessoas fazem isso é escrever scripts python personalizados ou um comando de gerenciamento por cron.py.
+Para automatizar o processo de notificação por e-mail, o Crontab é a ferramenta que escolhi, permite executar código Django/Python de forma recorrente, provando o encanamento básico para rastrear e executar tarefas. As duas maneiras mais comuns pelas quais a maioria das pessoas fazem isso é escrever scripts python personalizados ou um comando de gerenciamento por cron.py.
 
     from .models import Stock, AlarmStock
         from django.core.mail import EmailMessage
@@ -371,13 +416,14 @@ Para automatizar o processo de notificação por e-mail, o Crontab é a ferramen
         for stock in stocks:
             for alarm in queryset:
                 if stock.id == alarm.stock.id:
+                    user_email = user.email
                     if alarm.buying_at <= stock.price:
                         alarm.status = "Buying Opportunity"
                         EmailMessage(
                             'Alarm Stock Alert',
                             'Buying Opportunity',
                             settings.EMAIL_HOST_USER,
-                            ['paolo9517@gmail.com'],
+                            [user_email],
                         )
                     if alarm.selling_at >= stock.price:
                         alarm.status = "Selling Opportunity"
@@ -385,7 +431,7 @@ Para automatizar o processo de notificação por e-mail, o Crontab é a ferramen
                             'Alarm Stock Alert',
                             'Selling Opportunity:',
                             settings.EMAIL_HOST_USER,
-                            ['paolo9517@gmail.com'],
+                            ['user.email'],
                         )
 
 Em configurações.py
